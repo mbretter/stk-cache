@@ -1,0 +1,30 @@
+{
+  "name": "mbretter/stk-cache",
+  "description": "Cache",
+  "type": "library",
+  "license": "BSD",
+  "require": {
+    "ext-memcached": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7.5",
+    "friendsofphp/php-cs-fixer": "^2.14"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "StkTest\\": "test/unit/Stk"
+    }
+  },
+  "scripts": {
+    "test-unit": "phpunit -v --testsuite=\"unit tests\" --testdox --bootstrap test/unit/bootstrap.php",
+    "test-reports": "phpunit --testsuite=\"unit tests\" --bootstrap test/unit/bootstrap.php --coverage-html reports/coverage --coverage-clover reports/clover.xml --coverage-crap4j reports/crap4j.xml --log-junit reports/junit.xml",
+    "cs-check": "php-cs-fixer fix -v --dry-run --using-cache=no src",
+    "cs-fix": "php-cs-fixer fix -v --using-cache=no src",
+    "check-migration-71": "php-cs-fixer fix -v --dry-run --using-cache=no src --rules=@PHP71Migration --allow-risky=yes"
+  },
+  "autoload": {
+    "psr-4": {
+      "Stk\\": "src/Stk"
+    }
+  }
+}

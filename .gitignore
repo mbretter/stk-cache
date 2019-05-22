@@ -1,0 +1,6 @@
+!vendor/
+vendor/*
+.idea
+tmp/*/*
+reports
+.php_cs.cache
