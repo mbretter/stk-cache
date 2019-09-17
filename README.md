@@ -7,3 +7,5 @@
 [![Coverage](https://coveralls.io/repos/github/mbretter/stk-cache/badge.svg?branch=master)](https://coveralls.io/github/mbretter/stk-cache?branch=master)
 [![Latest Stable Version](https://img.shields.io/packagist/v/mbretter/stk-cache.svg)](https://packagist.org/packages/mbretter/stk-cache)
 [![Total Downloads](https://img.shields.io/packagist/dt/mbretter/stk-cache.svg)](https://packagist.org/packages/mbretter/stk-cache)
+
+Support for memcached is included.
