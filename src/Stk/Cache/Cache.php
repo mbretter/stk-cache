@@ -5,8 +5,9 @@ namespace Stk\Cache;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface as SimpleCacheInterface;
 use Psr\Cache\CacheItemInterface;
+use Stk\Service\Injectable;
 
-class Cache implements SimpleCacheInterface, CacheItemPoolInterface
+class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
 {
     /** @var SimpleCacheInterface|CacheItemPoolInterface */
     protected $pool;
