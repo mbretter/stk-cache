@@ -2,10 +2,9 @@
 
 namespace Stk\Cache;
 
-use DateInterval;
 use DateTime;
+use DateInterval;
 use DateTimeInterface;
-use Exception;
 use Psr\Cache\CacheItemInterface;
 
 class Item implements CacheItemInterface
@@ -97,7 +96,9 @@ class Item implements CacheItemInterface
         }
 
         if ($time instanceof DateInterval) {
-            $this->ttl = ((new DateTime())->add($time))->getTimestamp() - new DateTime();
+            $now1      = new DateTime();
+            $now2      = clone($now1);
+            $this->ttl = $now1->add($time)->getTimestamp() - $now2->getTimestamp();
         }
 
         if ($time === null) {
@@ -121,6 +122,7 @@ class Item implements CacheItemInterface
 
     /**
      * TTL in seconds
+     *
      * @return int
      */
     public function getTtl()
