@@ -18,11 +18,6 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
         $this->_cache = $memcached;
     }
 
-    public function setCache(MemcachedExt $memcached)
-    {
-        $this->_cache = $memcached;
-    }
-
     // PSR16 simple cache
 
     /**
@@ -163,7 +158,7 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
         $val  = $this->get($key);
         $item = new Item($key, $val);
 
-        return $item->setIsHit($this->_cache->getResultCode() === MemcachedExt::RES_NOTFOUND)->set($val);
+        return $item->setIsHit($this->_cache->getResultCode() !== MemcachedExt::RES_NOTFOUND)->set($val);
     }
 
     /**
