@@ -9,7 +9,6 @@ namespace Stk\Cache\Pool {
 
 }
 
-
 namespace Stk\Cache {
 
     function time()
