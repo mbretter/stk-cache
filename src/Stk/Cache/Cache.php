@@ -83,6 +83,10 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
             }
         }
 
+        if (!isset($items[$key])) {
+            return null;
+        }
+
         /** @var CacheItemInterface $item */
         $item = $items[$key];
         $data = $item->get();

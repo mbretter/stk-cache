@@ -70,6 +70,18 @@ class MemcachedTest extends TestCase
         $this->assertFalse($item->isHit());
     }
 
+    public function testGetItemWithFailure()
+    {
+        $this->memcached->expects($this->once())
+            ->method('get')
+            ->with('key1')
+            ->willReturn(false);
+        $this->memcached->method('getResultCode')->willReturn(MemcachedExt::RES_SERVER_ERROR);
+        $item = $this->pool->getItem('key1');
+
+        $this->assertFalse($item->isHit());
+    }
+
     public function testSet()
     {
         $this->memcached->expects($this->once())
@@ -120,6 +132,20 @@ class MemcachedTest extends TestCase
             ->method('getMulti')
             ->with(array_keys($expected))
             ->willReturn($expected);
+        $ret = $this->pool->getMultiple(array_keys($expected));
+        $this->assertEquals($expected, $ret);
+    }
+
+    public function testGetMultipleWithFailure()
+    {
+        $expected = [
+            'key1' => null,
+            'key2' => null
+        ];
+        $this->memcached->expects($this->once())
+            ->method('getMulti')
+            ->with(array_keys($expected))
+            ->willReturn(false);
         $ret = $this->pool->getMultiple(array_keys($expected));
         $this->assertEquals($expected, $ret);
     }
@@ -289,6 +315,19 @@ class MemcachedTest extends TestCase
             ->method('getMulti')
             ->with(array_keys($expected))
             ->willReturn(['key1' => 'val1']);
+        $ret = $this->pool->getItems(array_keys($expected));
+        $this->assertEquals($expected, $ret);
+    }
+
+    public function testGetWithFailure()
+    {
+        $expected = [
+            'key1' => new Item('key1'),
+            'key2' => new Item('key2')
+        ];
+        $this->memcached->expects($this->once())
+            ->method('getMulti')
+            ->willReturn(false);
         $ret = $this->pool->getItems(array_keys($expected));
         $this->assertEquals($expected, $ret);
     }

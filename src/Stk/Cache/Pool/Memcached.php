@@ -10,8 +10,7 @@ use Stk\Cache\InvalidArgumentException;
 
 class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
 {
-    /** @var MemcachedExt */
-    protected $_cache;
+    protected MemcachedExt $_cache;
 
     public function __construct(MemcachedExt $memcached)
     {
@@ -30,6 +29,10 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
         }
         $val = $this->_cache->get($key);
         if ($this->_cache->getResultCode() === MemcachedExt::RES_NOTFOUND) {
+            $val = $default;
+        }
+
+        if ($val === false && $this->_cache->getResultCode() !== MemcachedExt::RES_SUCCESS) {
             $val = $default;
         }
 
@@ -78,15 +81,25 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
         }
 
         if (is_array($keys)) {
-            return $this->_cache->getMulti($keys);
+            $ret = $this->_cache->getMulti($keys);
+            if ($ret === false) {
+                $ret = [];
+            }
+            foreach ($keys as $k) {
+                if (!array_key_exists($k, $ret)) {
+                    $ret[$k] = $default;
+                }
+            }
         } else {
+            // iterable
             $ret = [];
             foreach ($keys as $k) {
-                $ret[$k] = $this->get($k, $default);
+                $val     = $this->get($k, $default);
+                $ret[$k] = $val === false ? $default : $val;
             }
-
-            return $ret;
         }
+
+        return $ret;
     }
 
     /**
@@ -158,7 +171,7 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
         $val  = $this->get($key);
         $item = new Item($key, $val);
 
-        return $item->setIsHit($this->_cache->getResultCode() !== MemcachedExt::RES_NOTFOUND)->set($val);
+        return $item->setIsHit($val !== null)->set($val);
     }
 
     /**
@@ -174,7 +187,7 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
             if (!array_key_exists($k, $keysValues)) {
                 $ret[$k] = $item;
             } else {
-                $ret[$k] = $item->setIsHit(true)->set($keysValues[$k]);
+                $ret[$k] = $item->setIsHit($keysValues[$k] !== null)->set($keysValues[$k]);
             }
         }
 

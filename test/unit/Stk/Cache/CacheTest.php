@@ -133,6 +133,17 @@ class CacheTest extends TestCase
         $this->assertNull($ret);
     }
 
+    public function testGetGroupedEmptyItems()
+    {
+        $this->pool->expects($this->once())
+            ->method('getItems')
+            ->with(['grp1', 'key1'])
+            ->willReturn([]);
+
+        $ret = $this->cache->getGrouped('grp1', 'key1');
+        $this->assertNull($ret);
+    }
+
     public function testGetSetGrouped()
     {
         $this->pool->expects($this->once())

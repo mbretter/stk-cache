@@ -9,13 +9,11 @@ use Stk\Cache\Item;
 
 class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
 {
-    /** @var array */
-    protected $_cache = [];
+    protected array $_cache = [];
 
-    /** @var array */
-    protected $_config = [];
+    protected array $_config = [];
 
-    protected $prefix = "";
+    protected string $prefix = "";
 
     public function __construct(array $config)
     {

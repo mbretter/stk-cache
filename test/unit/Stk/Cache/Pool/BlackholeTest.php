@@ -82,8 +82,13 @@ class BlackholeTest extends TestCase
 
     public function testGetItems()
     {
+        $expected = [
+            'key1' => new Item('key1'),
+            'key2' => new Item('key2')
+        ];
+
         $ret = $this->pool->getItems(['key1', 'key2']);
-        $this->assertEquals([], $ret);
+        $this->assertEquals($expected, $ret);
     }
 
     public function testHasItem()

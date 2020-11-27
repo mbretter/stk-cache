@@ -89,7 +89,12 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
      */
     public function getItems(array $keys = [])
     {
-        return [];
+        $ret = [];
+        foreach ($keys as $k) {
+            $ret[$k] = new Item($k);
+        }
+
+        return $ret;
     }
 
     /**
