@@ -1,14 +1,14 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<phpunit>
-    <testsuites>
-        <testsuite name="unit tests">
-            <directory>test/unit</directory>
-        </testsuite>
-    </testsuites>
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">src</directory>
-            <exclude/>
-        </whitelist>
-    </filter>
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd">
+  <coverage processUncoveredFiles="true">
+    <include>
+      <directory suffix=".php">src</directory>
+    </include>
+    <exclude/>
+  </coverage>
+  <testsuites>
+    <testsuite name="unit tests">
+      <directory>test/unit</directory>
+    </testsuite>
+  </testsuites>
 </phpunit>

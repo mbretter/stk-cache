@@ -2,7 +2,8 @@
 
 namespace Stk\Cache\Pool;
 
-use Exception;
+use DateInterval;
+use DateTime;
 use Psr\Cache;
 use Psr\SimpleCache;
 use Stk\Cache\Item;
@@ -20,12 +21,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
         $this->init($config);
     }
 
-    /**
-     * @param $config
-     *
-     * @throws Exception
-     */
-    public function init(array $config = null)
+    public function init(array $config = null): void
     {
         if ($config !== null) {
             $this->_config = $config;
@@ -33,7 +29,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
         $this->setPrefix();
     }
 
-    public function setPrefix($prefix = '')
+    public function setPrefix(string $prefix = ''): void
     {
         if (strlen($prefix)) {
             $this->prefix = sprintf('%s%s_', $this->_config['prefix'], $prefix);
@@ -42,17 +38,17 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
         }
     }
 
-    protected function buildKey($key)
+    protected function buildKey(string $key): string
     {
         return sprintf('%s%s', $this->prefix, $key);
     }
 
-    public function dump()
+    public function dump(): array
     {
         return $this->_cache;
     }
 
-    public function restore($cacheDate)
+    public function restore(array $cacheDate): void
     {
         $this->_cache = $cacheDate;
     }
@@ -82,6 +78,10 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
      */
     public function set($key, $value, $ttl = Item::TTL_DEFAULT)
     {
+        if ($ttl instanceof DateInterval) {
+            $ttl = (new DateTime())->add($ttl)->getTimestamp() - (new DateTime())->getTimestamp();
+        }
+
         $this->_cache[$this->buildKey($key)] = ['data' => $value, 'expires' => time() + $ttl];
 
         return true;

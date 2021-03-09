@@ -2,6 +2,8 @@
 
 namespace Stk\Cache\Pool;
 
+use DateInterval;
+use DateTime;
 use Memcached as MemcachedExt;
 use Psr\Cache;
 use Psr\SimpleCache;
@@ -48,7 +50,11 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
             throw new InvalidArgumentException();
         }
 
-        return $this->_cache->set($key, $var, $ttl);
+        if ($ttl instanceof DateInterval) {
+            $ttl = (new DateTime())->add($ttl)->getTimestamp() - (new DateTime())->getTimestamp();
+        }
+
+        return $this->_cache->set($key, $var, (int) $ttl);
     }
 
     /**
@@ -111,8 +117,12 @@ class Memcached implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
             throw new InvalidArgumentException();
         }
 
+        if ($ttl instanceof DateInterval) {
+            $ttl = (new DateTime())->add($ttl)->getTimestamp() - (new DateTime())->getTimestamp();
+        }
+
         if (is_array($values)) {
-            return $this->_cache->setMulti($values, $ttl);
+            return $this->_cache->setMulti($values, (int) $ttl);
         } else {
             foreach ($values as $k => $v) {
                 if ($this->set($k, $v, $ttl) === false) {

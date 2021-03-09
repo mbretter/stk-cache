@@ -24,7 +24,13 @@ class Item implements CacheItemInterface
     /** @var int TTL in seconds */
     protected $ttl;
 
-    public function __construct($key, $val = null, $ttl = self::TTL_DEFAULT)
+    /**
+     * Item constructor.
+     * @param string $key
+     * @param ?mixed $val
+     * @param int $ttl
+     */
+    public function __construct(string $key, $val = null, int $ttl = self::TTL_DEFAULT)
     {
         $this->key = $key;
         $this->val = $val;

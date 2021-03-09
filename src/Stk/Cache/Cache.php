@@ -37,14 +37,14 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
      * print $val;
      * ```
      *
-     * @param $key
-     * @param $callableNotFound
+     * @param string $key
+     * @param callable $callableNotFound
      * @param int $ttl
      *
      * @return mixed
      * @throws InvalidArgumentException
      */
-    public function getSet($key, $callableNotFound, $ttl = Item::TTL_DEFAULT)
+    public function getSet(string $key, callable $callableNotFound, int $ttl = Item::TTL_DEFAULT)
     {
         $item = $this->pool->getItem($key);
         if ($item->isHit()) {
@@ -59,7 +59,14 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
         return $val;
     }
 
-    public function setGrouped($group, $key, $val, $ttl = Item::TTL_DEFAULT): bool
+    /**
+     * @param string $group
+     * @param string $key
+     * @param mixed $val
+     * @param int $ttl
+     * @return bool
+     */
+    public function setGrouped(string $group, string $key, $val, int $ttl = Item::TTL_DEFAULT): bool
     {
         $expires = time() + $ttl;
 
@@ -67,12 +74,12 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     }
 
     /**
-     * @param $group
-     * @param $key
+     * @param string $group
+     * @param string $key
      *
      * @return null|mixed
      */
-    public function getGrouped($group, $key)
+    public function getGrouped(string $group, string $key)
     {
         $items = $this->pool->getItems([$group, $key]);
 
@@ -81,6 +88,11 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
             if (!$i->isHit()) {
                 return null;
             }
+        }
+
+        // we do not support Traversables
+        if (!is_array($items)) {
+            return null;
         }
 
         if (!isset($items[$key])) {
@@ -101,7 +113,14 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
         return $data['val'];
     }
 
-    public function getSetGrouped($group, $key, $callableNotFound, $ttl = Item::TTL_DEFAULT)
+    /**
+     * @param string $group
+     * @param string $key
+     * @param callable $callableNotFound
+     * @param int $ttl
+     * @return mixed
+     */
+    public function getSetGrouped(string $group, string $key, callable $callableNotFound, int $ttl = Item::TTL_DEFAULT)
     {
         $val = $this->getGrouped($group, $key);
         if ($val !== null) {
