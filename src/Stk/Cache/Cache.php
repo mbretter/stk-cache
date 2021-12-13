@@ -2,7 +2,6 @@
 
 namespace Stk\Cache;
 
-
 use DateInterval;
 use Psr\Cache\CacheItemInterface;
 use Stk\Service\Injectable;

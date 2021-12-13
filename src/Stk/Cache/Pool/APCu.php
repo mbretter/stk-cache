@@ -201,6 +201,4 @@ class APCu implements PoolInterface
     {
         return true;
     }
-
 }
-

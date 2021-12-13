@@ -146,6 +146,4 @@ class Blackhole implements PoolInterface
     {
         return true;
     }
-
 }
-

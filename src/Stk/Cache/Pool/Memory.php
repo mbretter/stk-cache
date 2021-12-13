@@ -238,6 +238,4 @@ class Memory implements PoolInterface
     {
         return true;
     }
-
 }
-

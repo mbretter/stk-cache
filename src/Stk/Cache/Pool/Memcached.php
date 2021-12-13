@@ -210,6 +210,4 @@ class Memcached implements PoolInterface
     {
         return true;
     }
-
 }
-

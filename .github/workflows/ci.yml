@@ -3,21 +3,27 @@ name: CI
 on: [push]
 
 jobs:
-  build-test:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
       - uses: php-actions/composer@v6
 
-      - name: PHPStan 2
+      - name: coding style
+        uses: php-actions/composer@v6
+        with:
+          command: cs-check
+          php_version: 8.0
+
+      - name: static code analysis
         uses: php-actions/composer@v6
         with:
           command: analyse
           php_version: 8.0
           php_extensions: apcu memcached
 
-      - name: PHPUnit tests
+      - name: unit tests
         uses: php-actions/composer@v6
         with:
           command: test-unit

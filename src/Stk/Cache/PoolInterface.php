@@ -7,5 +7,4 @@ use Psr\SimpleCache\CacheInterface as SimpleCacheInterface;
 
 interface PoolInterface extends SimpleCacheInterface, CacheItemPoolInterface
 {
-
 }
