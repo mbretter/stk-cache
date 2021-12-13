@@ -5,10 +5,10 @@ namespace Stk\Cache\Pool;
 use DateInterval;
 use DateTime;
 use Psr\Cache;
-use Psr\SimpleCache;
 use Stk\Cache\Item;
+use Stk\Cache\PoolInterface;
 
-class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
+class Memory implements PoolInterface
 {
     protected array $_cache = [];
 
@@ -58,7 +58,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         if (!isset($this->_cache[$this->buildKey($key)])) {
             return false;
@@ -76,7 +76,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function set($key, $value, $ttl = Item::TTL_DEFAULT)
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = Item::TTL_DEFAULT): bool
     {
         if ($ttl instanceof DateInterval) {
             $ttl = (new DateTime())->add($ttl)->getTimestamp() - (new DateTime())->getTimestamp();
@@ -90,7 +90,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function has($key)
+    public function has(string $key): bool
     {
         return array_key_exists($this->buildKey($key), $this->_cache);
     }
@@ -98,7 +98,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function clear()
+    public function clear(): bool
     {
         $this->_cache = [];
 
@@ -108,7 +108,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function delete($key)
+    public function delete(string $key): bool
     {
         if (!array_key_exists($this->buildKey($key), $this->_cache)) {
             return false;
@@ -122,7 +122,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         $ret = [];
         foreach ($keys as $k) {
@@ -135,7 +135,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function setMultiple($values, $ttl = 300)
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = 300): bool
     {
         foreach ($values as $k => $v) {
             $this->set($k, $v, $ttl);
@@ -147,9 +147,9 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function deleteMultiple($values)
+    public function deleteMultiple(iterable $keys): bool
     {
-        foreach ($values as $k => $v) {
+        foreach ($keys as $k => $v) {
             $this->delete($k);
         }
 
@@ -161,7 +161,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function getItem($key)
+    public function getItem(string $key): Cache\CacheItemInterface
     {
         $item = new Item($key);
 
@@ -175,7 +175,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = []): iterable
     {
         $ret = [];
         foreach ($keys as $k) {
@@ -188,7 +188,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function hasItem($key)
+    public function hasItem(string $key): bool
     {
         return $this->has($key);
     }
@@ -196,7 +196,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function deleteItem($key)
+    public function deleteItem(string $key): bool
     {
         return $this->delete($key);
     }
@@ -204,7 +204,7 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function deleteItems(array $keys)
+    public function deleteItems(array $keys): bool
     {
         foreach ($keys as $k) {
             $this->delete($k);
@@ -216,23 +216,25 @@ class Memory implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
     /**
      * {@inheritDoc}
      */
-    public function save(Cache\CacheItemInterface $item)
+    public function save(Cache\CacheItemInterface $item): bool
     {
+        /** @var Item $item */
+
         return $this->set($item->getKey(), $item->get(), $item->getTtl());
     }
 
     /**
      * {@inheritDoc}
      */
-    public function saveDeferred(Cache\CacheItemInterface $item)
+    public function saveDeferred(Cache\CacheItemInterface $item): bool
     {
-        return $this->set($item->getKey(), $item->get(), $item->getTtl());
+        return $this->save($item);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function commit()
+    public function commit(): bool
     {
         return true;
     }

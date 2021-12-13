@@ -9,8 +9,7 @@ use Stk\Cache\Pool\Memory;
 
 class MemoryTest extends TestCase
 {
-    /** @var Memory */
-    protected $pool;
+    protected Memory $pool;
 
     public function setUp(): void
     {
@@ -19,7 +18,7 @@ class MemoryTest extends TestCase
         ]);
     }
 
-    public function testConstructor()
+    public function testConstructor(): void
     {
         $cache = new Memory([
             'prefix' => "xx_",
@@ -34,7 +33,7 @@ class MemoryTest extends TestCase
     }
 
 
-    public function testSet()
+    public function testSet(): void
     {
         $ret = $this->pool->set('key1', 'val1');
         $this->assertTrue($ret);
@@ -47,7 +46,7 @@ class MemoryTest extends TestCase
     }
 
 
-    public function testGet()
+    public function testGet(): void
     {
         $this->pool->restore([
             'xx_key1' => [
@@ -60,13 +59,13 @@ class MemoryTest extends TestCase
         $this->assertEquals('val1', $ret);
     }
 
-    public function testGetNonExistend()
+    public function testGetNonExistend(): void
     {
         $ret = $this->pool->get('key1');
         $this->assertFalse($ret);
     }
 
-    public function testGetExpired()
+    public function testGetExpired(): void
     {
         $this->pool->restore([
             'xx_key1' => [
@@ -79,7 +78,7 @@ class MemoryTest extends TestCase
         $this->assertFalse($ret);
     }
 
-    public function testDelete()
+    public function testDelete(): void
     {
         $this->pool->restore([
             'xx_key1' => [
@@ -96,7 +95,7 @@ class MemoryTest extends TestCase
         $this->assertFalse($ret);
     }
 
-    public function testSetPrefix()
+    public function testSetPrefix(): void
     {
         $this->pool->setPrefix('yy');
 
@@ -110,7 +109,7 @@ class MemoryTest extends TestCase
         ], $this->pool->dump());
     }
 
-    public function testGetMultiple()
+    public function testGetMultiple(): void
     {
         $this->pool->restore([
             'xx_key1' => [
@@ -128,7 +127,7 @@ class MemoryTest extends TestCase
         $this->assertEquals(['key1' => 'val1', 'key2' => 'val2'], $vals);
     }
 
-    public function testSetMultiple()
+    public function testSetMultiple(): void
     {
         $this->pool->setMultiple(['key1' => 'val1', 'key2' => 'val2']);
 

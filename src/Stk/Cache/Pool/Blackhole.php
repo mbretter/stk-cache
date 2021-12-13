@@ -2,18 +2,20 @@
 
 namespace Stk\Cache\Pool;
 
+use DateInterval;
 use Psr\Cache;
-use Psr\SimpleCache;
+use Psr\Cache\CacheItemInterface;
 use Stk\Cache\Item;
+use Stk\Cache\PoolInterface;
 
-class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterface
+class Blackhole implements PoolInterface
 {
     // the simple interface
 
     /**
      * {@inheritDoc}
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): bool
     {
         return false;
     }
@@ -21,7 +23,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function set($key, $value, $ttl = Item::TTL_DEFAULT)
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = Item::TTL_DEFAULT): bool
     {
         return true;
     }
@@ -29,7 +31,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function has($key)
+    public function has(string $key): bool
     {
         return false;
     }
@@ -37,7 +39,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function clear()
+    public function clear(): bool
     {
         return true;
     }
@@ -45,7 +47,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function delete($key)
+    public function delete(string $key): bool
     {
         return true;
     }
@@ -53,7 +55,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         return [];
     }
@@ -61,7 +63,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function setMultiple($values, $ttl = 300)
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = 300): bool
     {
         return true;
     }
@@ -69,7 +71,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function deleteMultiple($values)
+    public function deleteMultiple(iterable $keys): bool
     {
         return true;
     }
@@ -79,7 +81,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function getItem($key)
+    public function getItem(string $key): CacheItemInterface
     {
         return new Item($key);
     }
@@ -87,7 +89,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = []): iterable
     {
         $ret = [];
         foreach ($keys as $k) {
@@ -100,7 +102,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function hasItem($key)
+    public function hasItem(string $key): bool
     {
         return $this->has($key);
     }
@@ -108,7 +110,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function deleteItem($key)
+    public function deleteItem(string $key): bool
     {
         return $this->delete($key);
     }
@@ -116,7 +118,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function deleteItems(array $keys)
+    public function deleteItems(array $keys): bool
     {
         return true;
     }
@@ -124,7 +126,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function save(Cache\CacheItemInterface $item)
+    public function save(Cache\CacheItemInterface $item): bool
     {
         return true;
     }
@@ -132,7 +134,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function saveDeferred(Cache\CacheItemInterface $item)
+    public function saveDeferred(Cache\CacheItemInterface $item): bool
     {
         return true;
     }
@@ -140,7 +142,7 @@ class Blackhole implements SimpleCache\CacheInterface, Cache\CacheItemPoolInterf
     /**
      * {@inheritDoc}
      */
-    public function commit()
+    public function commit(): bool
     {
         return true;
     }

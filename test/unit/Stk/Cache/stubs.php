@@ -2,7 +2,7 @@
 
 namespace Stk\Cache\Pool {
 
-    function time()
+    function time(): int
     {
         return 100;
     }
@@ -11,7 +11,7 @@ namespace Stk\Cache\Pool {
 
 namespace Stk\Cache {
 
-    function time()
+    function time(): int
     {
         return 100;
     }

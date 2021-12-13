@@ -4,19 +4,12 @@ namespace Stk\Cache\Pool;
 
 use DateInterval;
 use DateTime;
-use Memcached as MemcachedExt;
 use Psr\Cache;
 use Stk\Cache\Item;
 use Stk\Cache\PoolInterface;
 
-class Memcached implements PoolInterface
+class APCu implements PoolInterface
 {
-    protected MemcachedExt $_cache;
-
-    public function __construct(MemcachedExt $memcached)
-    {
-        $this->_cache = $memcached;
-    }
 
     // PSR16 simple cache
 
@@ -25,12 +18,14 @@ class Memcached implements PoolInterface
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        $val = $this->_cache->get($key);
-        if ($this->_cache->getResultCode() === MemcachedExt::RES_NOTFOUND) {
+        $success = true;
+        if (apcu_exists($key)) {
+            $val = apcu_fetch($key, $success);
+        } else {
             $val = $default;
         }
 
-        if ($val === false && $this->_cache->getResultCode() !== MemcachedExt::RES_SUCCESS) {
+        if ($val === false && $success === false) {
             $val = $default;
         }
 
@@ -46,7 +41,7 @@ class Memcached implements PoolInterface
             $ttl = (new DateTime())->add($ttl)->getTimestamp() - (new DateTime())->getTimestamp();
         }
 
-        return $this->_cache->set($key, $value, (int) $ttl);
+        return apcu_store($key, $value, (int) $ttl);
     }
 
     /**
@@ -54,7 +49,7 @@ class Memcached implements PoolInterface
      */
     public function delete(string $key): bool
     {
-        return $this->_cache->delete($key);
+        return apcu_delete($key);
     }
 
     /**
@@ -62,7 +57,7 @@ class Memcached implements PoolInterface
      */
     public function clear(): bool
     {
-        return $this->_cache->flush();
+        return apcu_clear_cache();
     }
 
     /**
@@ -72,7 +67,7 @@ class Memcached implements PoolInterface
     {
         $aKeys = [...$keys];
 
-        $ret = $this->_cache->getMulti($aKeys);
+        $ret = apcu_fetch($aKeys);
         if ($ret === false) {
             $ret = [];
         }
@@ -94,7 +89,13 @@ class Memcached implements PoolInterface
             $ttl = (new DateTime())->add($ttl)->getTimestamp() - (new DateTime())->getTimestamp();
         }
 
-        return $this->_cache->setMulti([...$values], (int) $ttl);
+        foreach ($values as $k => $v) {
+            if ($this->set($k, $v, $ttl) === false) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -102,11 +103,9 @@ class Memcached implements PoolInterface
      */
     public function deleteMultiple(iterable $keys): bool
     {
-        $aKeys = [...$keys];
+        $res = apcu_delete([...$keys]);
 
-        $keysRemoved = $this->_cache->deleteMulti($aKeys);
-
-        return count($keysRemoved) === count($aKeys);
+        return count($res) === 0;
     }
 
     /**
@@ -114,9 +113,7 @@ class Memcached implements PoolInterface
      */
     public function has(string $key): bool
     {
-        $v = $this->_cache->get($key);
-
-        return $v !== false && $this->_cache->getResultCode() !== MemcachedExt::RES_NOTFOUND;
+        return apcu_exists($key);
     }
 
     // PSR6 cache
@@ -186,7 +183,6 @@ class Memcached implements PoolInterface
     public function save(Cache\CacheItemInterface $item): bool
     {
         /** @var Item $item */
-
         return $this->set($item->getKey(), $item->get(), $item->getTtl());
     }
 

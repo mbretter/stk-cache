@@ -12,11 +12,9 @@ use Stk\Cache\Pool\Memory;
 
 class CacheTest extends TestCase
 {
-    /** @var Cache */
-    protected $cache;
+    protected Cache $cache;
 
-    /** @var Memory|MockObject */
-    protected $pool;
+    protected Memory|MockObject $pool;
 
     public function setUp(): void
     {
@@ -25,7 +23,7 @@ class CacheTest extends TestCase
         $this->cache = new Cache($this->pool);
     }
 
-    public function testGetSet()
+    public function testGetSet(): void
     {
         $this->pool->expects($this->once())
             ->method('getItem')
@@ -37,7 +35,7 @@ class CacheTest extends TestCase
         $this->assertEquals('val1', $ret);
     }
 
-    public function testGetSetNotFound()
+    public function testGetSetNotFound(): void
     {
         $this->pool->expects($this->once())
             ->method('getItem')
@@ -49,7 +47,7 @@ class CacheTest extends TestCase
         $this->assertEquals('newval', $ret);
     }
 
-    public function testGetGrouped()
+    public function testGetGrouped(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -63,7 +61,7 @@ class CacheTest extends TestCase
         $this->assertEquals('val1', $ret);
     }
 
-    public function testGetGroupedKeyNotFound()
+    public function testGetGroupedKeyNotFound(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -77,7 +75,7 @@ class CacheTest extends TestCase
         $this->assertNull($ret);
     }
 
-    public function testGetGroupedGroupNotFound()
+    public function testGetGroupedGroupNotFound(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -91,7 +89,7 @@ class CacheTest extends TestCase
         $this->assertNull($ret);
     }
 
-    public function testGetGroupedKeyvalInvalid1()
+    public function testGetGroupedKeyvalInvalid1(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -105,7 +103,7 @@ class CacheTest extends TestCase
         $this->assertNull($ret);
     }
 
-    public function testGetGroupedKeyvalInvalid2()
+    public function testGetGroupedKeyvalInvalid2(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -119,7 +117,7 @@ class CacheTest extends TestCase
         $this->assertNull($ret);
     }
 
-    public function testGetGroupedKeyvalExpired()
+    public function testGetGroupedKeyvalExpired(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -133,7 +131,7 @@ class CacheTest extends TestCase
         $this->assertNull($ret);
     }
 
-    public function testGetGroupedEmptyItems()
+    public function testGetGroupedEmptyItems(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -144,7 +142,7 @@ class CacheTest extends TestCase
         $this->assertNull($ret);
     }
 
-    public function testGetSetGrouped()
+    public function testGetSetGrouped(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -162,7 +160,7 @@ class CacheTest extends TestCase
         $this->assertEquals('val1', $ret);
     }
 
-    public function testGetGroupElseNotFound()
+    public function testGetGroupElseNotFound(): void
     {
         $this->pool->expects($this->once())
             ->method('getItems')
@@ -180,7 +178,7 @@ class CacheTest extends TestCase
         $this->assertEquals('newval', $ret);
     }
 
-    public function testSetGrouped()
+    public function testSetGrouped(): void
     {
         $this->pool->expects($this->once())
             ->method('setMultiple')

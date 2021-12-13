@@ -2,26 +2,24 @@
 
 namespace Stk\Cache;
 
-use Psr\Cache\CacheItemPoolInterface;
-use Psr\SimpleCache\CacheInterface as SimpleCacheInterface;
+
+use DateInterval;
 use Psr\Cache\CacheItemInterface;
 use Stk\Service\Injectable;
 
-class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
+class Cache implements PoolInterface, Injectable
 {
-    /** @var SimpleCacheInterface|CacheItemPoolInterface */
-    protected $pool;
+    protected PoolInterface $pool;
 
     /**
-     * @param SimpleCacheInterface|CacheItemPoolInterface $pool
+     * @param PoolInterface $pool
      */
-    public function __construct($pool)
+    public function __construct(PoolInterface $pool)
     {
         $this->pool = $pool;
     }
 
     // extensions
-
 
     /**
      * get a cache value and invoke callable, if key was not found.
@@ -42,9 +40,8 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
      * @param int $ttl
      *
      * @return mixed
-     * @throws InvalidArgumentException
      */
-    public function getSet(string $key, callable $callableNotFound, int $ttl = Item::TTL_DEFAULT)
+    public function getSet(string $key, callable $callableNotFound, int $ttl = Item::TTL_DEFAULT): mixed
     {
         $item = $this->pool->getItem($key);
         if ($item->isHit()) {
@@ -53,7 +50,9 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
 
         $val = $callableNotFound();
         if ($val !== null) {
-            $this->pool->set($key, $val, $ttl);
+            $item = new Item($key, $val, $ttl);
+
+            $this->pool->save($item);
         }
 
         return $val;
@@ -66,7 +65,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
      * @param int $ttl
      * @return bool
      */
-    public function setGrouped(string $group, string $key, $val, int $ttl = Item::TTL_DEFAULT): bool
+    public function setGrouped(string $group, string $key, mixed $val, int $ttl = Item::TTL_DEFAULT): bool
     {
         $expires = time() + $ttl;
 
@@ -77,9 +76,9 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
      * @param string $group
      * @param string $key
      *
-     * @return null|mixed
+     * @return mixed
      */
-    public function getGrouped(string $group, string $key)
+    public function getGrouped(string $group, string $key): mixed
     {
         $items = $this->pool->getItems([$group, $key]);
 
@@ -120,8 +119,12 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
      * @param int $ttl
      * @return mixed
      */
-    public function getSetGrouped(string $group, string $key, callable $callableNotFound, int $ttl = Item::TTL_DEFAULT)
-    {
+    public function getSetGrouped(
+        string $group,
+        string $key,
+        callable $callableNotFound,
+        int $ttl = Item::TTL_DEFAULT
+    ): mixed {
         $val = $this->getGrouped($group, $key);
         if ($val !== null) {
             return $val;
@@ -137,14 +140,14 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
 
 
     // pass through methods to fullfill interface specs
-    // we don not want to use magic methods
+    // we do not want to use magic methods
 
     // PSR-16 SimpleCacheInterface
 
     /**
      * {@inheritDoc}
      */
-    public function get($key, $default = null)
+    public function get(string $key, mixed $default = null): mixed
     {
         return $this->pool->get($key, $default);
     }
@@ -152,7 +155,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function set($key, $value, $ttl = Item::TTL_DEFAULT)
+    public function set(string $key, mixed $value, null|int|DateInterval $ttl = Item::TTL_DEFAULT): bool
     {
         return $this->pool->set($key, $value, $ttl);
     }
@@ -160,7 +163,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function delete($key)
+    public function delete(string $key): bool
     {
         return $this->pool->delete($key);
     }
@@ -168,7 +171,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function clear()
+    public function clear(): bool
     {
         return $this->pool->clear();
     }
@@ -176,7 +179,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
         return $this->pool->getMultiple($keys, $default);
     }
@@ -184,15 +187,15 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function setMultiple($keyValues, $ttl = null)
+    public function setMultiple(iterable $values, null|int|DateInterval $ttl = null): bool
     {
-        return $this->pool->setMultiple($keyValues, $ttl);
+        return $this->pool->setMultiple($values, $ttl);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function deleteMultiple($keys)
+    public function deleteMultiple(iterable $keys): bool
     {
         return $this->pool->deleteMultiple($keys);
     }
@@ -200,7 +203,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function has($key)
+    public function has(string $key): bool
     {
         return $this->pool->has($key);
     }
@@ -210,7 +213,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function getItem($key)
+    public function getItem(string $key): CacheItemInterface
     {
         return $this->pool->getItem($key);
     }
@@ -218,7 +221,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function getItems(array $keys = [])
+    public function getItems(array $keys = []): iterable
     {
         return $this->pool->getItems($keys);
     }
@@ -226,7 +229,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function hasItem($key)
+    public function hasItem(string $key): bool
     {
         return $this->pool->hasItem($key);
     }
@@ -234,7 +237,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function deleteItem($key)
+    public function deleteItem(string $key): bool
     {
         return $this->pool->deleteItem($key);
     }
@@ -242,7 +245,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function deleteItems(array $keys)
+    public function deleteItems(array $keys): bool
     {
         return $this->pool->deleteItems($keys);
     }
@@ -250,7 +253,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function save(CacheItemInterface $item)
+    public function save(CacheItemInterface $item): bool
     {
         return $this->pool->save($item);
     }
@@ -258,7 +261,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function saveDeferred(CacheItemInterface $item)
+    public function saveDeferred(CacheItemInterface $item): bool
     {
         return $this->pool->saveDeferred($item);
     }
@@ -266,7 +269,7 @@ class Cache implements SimpleCacheInterface, CacheItemPoolInterface, Injectable
     /**
      * {@inheritDoc}
      */
-    public function commit()
+    public function commit(): bool
     {
         return $this->pool->commit();
     }

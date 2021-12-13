@@ -12,17 +12,14 @@ class Item implements CacheItemInterface
     public const TTL_FOREVER = 0;
     public const TTL_DEFAULT = 300;
 
-    /** @var string */
-    protected $key;
+    protected string $key;
 
-    /** @var mixed */
-    protected $val;
+    protected mixed $val = null;
 
-    /** @var bool */
-    protected $hit = false;
+    protected bool $hit = false;
 
     /** @var int TTL in seconds */
-    protected $ttl;
+    protected int $ttl;
 
     /**
      * Item constructor.
@@ -30,7 +27,7 @@ class Item implements CacheItemInterface
      * @param ?mixed $val
      * @param int $ttl
      */
-    public function __construct(string $key, $val = null, int $ttl = self::TTL_DEFAULT)
+    public function __construct(string $key, mixed $val = null, int $ttl = self::TTL_DEFAULT)
     {
         $this->key = $key;
         $this->val = $val;
@@ -41,7 +38,7 @@ class Item implements CacheItemInterface
     /**
      * {@inheritDoc}
      */
-    public function getKey()
+    public function getKey(): string
     {
         return $this->key;
     }
@@ -49,7 +46,7 @@ class Item implements CacheItemInterface
     /**
      * {@inheritDoc}
      */
-    public function get()
+    public function get(): mixed
     {
         if (!$this->isHit()) {
             return null;
@@ -61,7 +58,7 @@ class Item implements CacheItemInterface
     /**
      * {@inheritDoc}
      */
-    public function isHit()
+    public function isHit(): bool
     {
         return $this->hit;
     }
@@ -69,7 +66,7 @@ class Item implements CacheItemInterface
     /**
      * {@inheritDoc}
      */
-    public function set($value)
+    public function set($value): static
     {
         $this->val = $value;
 
@@ -79,7 +76,7 @@ class Item implements CacheItemInterface
     /**
      * {@inheritDoc}
      */
-    public function expiresAt($expiration)
+    public function expiresAt($expiration): static
     {
         if ($expiration instanceof DateTimeInterface) {
             $this->ttl = $expiration->getTimestamp() - (new DateTime())->getTimestamp();
@@ -95,7 +92,7 @@ class Item implements CacheItemInterface
     /**
      * {@inheritDoc}
      */
-    public function expiresAfter($time)
+    public function expiresAfter($time): static
     {
         if (is_int($time)) {
             $this->ttl = $time;
@@ -114,12 +111,7 @@ class Item implements CacheItemInterface
         return $this;
     }
 
-    /**
-     * @param bool $isHit
-     *
-     * @return $this
-     */
-    public function setIsHit($isHit)
+    public function setIsHit(bool $isHit): static
     {
         $this->hit = $isHit;
 
@@ -131,7 +123,7 @@ class Item implements CacheItemInterface
      *
      * @return int
      */
-    public function getTtl()
+    public function getTtl(): int
     {
         return $this->ttl;
     }

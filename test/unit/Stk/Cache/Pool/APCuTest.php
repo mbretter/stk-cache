@@ -5,46 +5,51 @@ namespace StkTest\Cache\Pool;
 require_once __DIR__ . '/../stubs.php';
 
 use ArrayIterator;
-use Memcached;
-use Memcached as MemcachedExt;
+use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Stk\Cache\Item;
-use Stk\Cache\Pool\Memcached as MemcachedPool;
-use Stk\Cache\Pool\Memory;
+use Stk\Cache\Pool\APCu;
 
-class MemcachedTest extends TestCase
+class APCuTest extends TestCase
 {
-    /** @var Memory */
-    protected $pool;
+    use PHPMock;
 
-    /** @var MockObject|Memcached */
-    protected $memcached;
+    protected APCu $pool;
+
+    protected MockObject $apcu_exists;
+    protected MockObject $apcu_fetch;
+    protected MockObject $apcu_store;
+    protected MockObject $apcu_delete;
 
     public function setUp(): void
     {
-        $this->memcached = $this->createMock(Memcached::class);
+        $this->pool = new APCu();
 
-        $this->pool = new MemcachedPool($this->memcached);
+        $this->apcu_exists = $this->getFunctionMock('Stk\Cache\Pool', 'apcu_exists');
+        $this->apcu_fetch  = $this->getFunctionMock('Stk\Cache\Pool', 'apcu_fetch');
+        $this->apcu_store  = $this->getFunctionMock('Stk\Cache\Pool', 'apcu_store');
+        $this->apcu_delete = $this->getFunctionMock('Stk\Cache\Pool', 'apcu_delete');
     }
 
     public function testGet(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('get')
+        $this->apcu_exists->expects($this->once())->willReturn(true);
+        $this->apcu_fetch->expects($this->once())
             ->with('key1')
             ->willReturn('val1');
+
         $ret = $this->pool->get('key1');
         $this->assertEquals('val1', $ret);
     }
 
     public function testGetItem(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('get')
+        $this->apcu_exists->expects($this->once())->willReturn(true);
+        $this->apcu_fetch->expects($this->once())
             ->with('key1')
             ->willReturn('val1');
-        $this->memcached->method('getResultCode')->willReturn(MemcachedExt::RES_SUCCESS);
+
         $item = $this->pool->getItem('key1');
 
         $this->assertEquals('val1', $item->get());
@@ -53,53 +58,53 @@ class MemcachedTest extends TestCase
 
     public function testGetItemNotFound(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('get')
-            ->with('key1')
-            ->willReturn(false);
-        $this->memcached->method('getResultCode')->willReturn(MemcachedExt::RES_NOTFOUND);
+        $this->apcu_exists->expects($this->once())->willReturn(false);
+        $this->apcu_fetch->expects($this->never());
         $item = $this->pool->getItem('key1');
 
         $this->assertFalse($item->isHit());
     }
 
-    public function testGetItemWithFailure(): void
-    {
-        $this->memcached->expects($this->once())
-            ->method('get')
-            ->with('key1')
-            ->willReturn(false);
-        $this->memcached->method('getResultCode')->willReturn(MemcachedExt::RES_SERVER_ERROR);
-        $item = $this->pool->getItem('key1');
-
-        $this->assertFalse($item->isHit());
-    }
+// currently not testable
+//    public function testGetItemWithFailure(): void
+//    {
+//        $this->apcu_exists->expects($this->once())->willReturn(true);
+//        $this->apcu_fetch->expects($this->once())
+//            ->with('key1')
+//            ->will($this->returnCallback(function ($patient, &$success) {
+//                $success = false;
+//
+//                return false;
+//            }));
+//        $item = $this->pool->getItem('key1');
+//
+//        $this->assertNull($item->get());
+//        $this->assertFalse($item->isHit());
+//    }
 
     public function testSet(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('set')
+        $this->apcu_store->expects($this->once())
             ->with('key1', 'val1', 300)
             ->willReturn(true);
+
         $ret = $this->pool->set('key1', 'val1');
         $this->assertTrue($ret);
     }
 
     public function testDelete(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('delete')
-            ->with('key1')
+        $this->apcu_delete->expects($this->once())->with('key1')
             ->willReturn(true);
+
         $ret = $this->pool->delete('key1');
         $this->assertTrue($ret);
     }
 
     public function testClear(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('flush')
-            ->willReturn(true);
+        $this->getFunctionMock('Stk\Cache\Pool', 'apcu_clear_cache')->expects($this->once())->willReturn(true);
+
         $this->assertTrue($this->pool->clear());
     }
 
@@ -109,10 +114,11 @@ class MemcachedTest extends TestCase
             'key1' => 'val1',
             'key2' => 'val2'
         ];
-        $this->memcached->expects($this->once())
-            ->method('getMulti')
+
+        $this->apcu_fetch->expects($this->once())
             ->with(array_keys($expected))
             ->willReturn($expected);
+
         $ret = $this->pool->getMultiple(array_keys($expected));
         $this->assertEquals($expected, $ret);
     }
@@ -123,33 +129,20 @@ class MemcachedTest extends TestCase
             'key1' => null,
             'key2' => null
         ];
-        $this->memcached->expects($this->once())
-            ->method('getMulti')
+
+        $this->apcu_fetch->expects($this->once())
             ->with(array_keys($expected))
             ->willReturn(false);
-        $ret = $this->pool->getMultiple(array_keys($expected));
-        $this->assertEquals($expected, $ret);
-    }
 
-    public function testGetMultipleWithIterable(): void
-    {
-        $expected = [
-            'key1' => 'val1',
-            'key2' => 'val2'
-        ];
-        $iterable = new ArrayIterator(array_keys($expected));
-        $this->memcached->method('get')->withConsecutive(['key1'], ['key2'])
-            ->willReturnOnConsecutiveCalls('val1', 'val2');
-        $ret = $this->pool->getMultiple($iterable);
+        $ret = $this->pool->getMultiple(array_keys($expected));
         $this->assertEquals($expected, $ret);
     }
 
     public function testSetMultiple(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('setMulti')
-            ->with(['key1' => 'val1', 'key2' => 'val2'], 300)
-            ->willReturn(true);
+        $this->apcu_store->expects($this->atMost(2))
+            ->withConsecutive(['key1', 'val1', 300], ['key2', 'val2', 300])
+            ->willReturnOnConsecutiveCalls(true, true);
 
         $ret = $this->pool->setMultiple(['key1' => 'val1', 'key2' => 'val2']);
         $this->assertTrue($ret);
@@ -162,8 +155,10 @@ class MemcachedTest extends TestCase
             'key2' => 'val2'
         ];
         $iterable = new ArrayIterator($expected);
-        $this->memcached->method('set')->withConsecutive(['key1', 'val1', 499], ['key2', 'val2', 499])
+        $this->apcu_store->expects($this->atMost(2))
+            ->withConsecutive(['key1', 'val1', 499], ['key2', 'val2', 499])
             ->willReturnOnConsecutiveCalls(true, true);
+
         $ret = $this->pool->setMultiple($iterable, 499);
         $this->assertTrue($ret);
     }
@@ -175,68 +170,48 @@ class MemcachedTest extends TestCase
             'key2' => 'val2'
         ];
         $iterable = new ArrayIterator($expected);
-        $this->memcached->method('set')->withConsecutive(['key1', 'val1', 499])
-            ->willReturnOnConsecutiveCalls(false);
+
+        $this->apcu_store->expects($this->atMost(2))
+            ->with('key1', 'val1', 499)
+            ->willReturn(false);
+
         $ret = $this->pool->setMultiple($iterable, 499);
         $this->assertFalse($ret);
     }
 
     public function testDeleteMultiple(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('deleteMulti')
+        $this->apcu_delete->expects($this->once())
             ->with(['key1', 'key2'])
-            ->willReturn(true);
-        $ret = $this->pool->deleteMultiple(['key1', 'key2']);
-        $this->assertTrue($ret);
-    }
+            ->willReturn([]);
 
-    public function testDeleteMultipleWithIterable(): void
-    {
-        $iterable = new ArrayIterator(['key1', 'key2']);
-        $this->memcached->method('delete')->withConsecutive(['key1'], ['key2'])
-            ->willReturnOnConsecutiveCalls(true, true);
-        $ret = $this->pool->deleteMultiple($iterable);
+        $ret = $this->pool->deleteMultiple(['key1', 'key2']);
         $this->assertTrue($ret);
     }
 
     public function testDeleteMultipleWithIterableError(): void
     {
         $iterable = new ArrayIterator(['key1', 'key2']);
-        $this->memcached->method('delete')->withConsecutive(['key1'])
-            ->willReturnOnConsecutiveCalls(false);
+        $this->apcu_delete->expects($this->once())->with(['key1', 'key2'])
+            ->willReturn(['key']);
         $ret = $this->pool->deleteMultiple($iterable);
         $this->assertFalse($ret);
     }
 
     public function testHas(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('get')
+        $this->apcu_exists->expects($this->once())
             ->with('key1')
-            ->willReturn('val1');
+            ->willReturn(true);
         $ret = $this->pool->has('key1');
         $this->assertTrue($ret);
     }
 
     public function testHasNot1(): void
     {
-        $this->memcached->expects($this->once())
-            ->method('get')
+        $this->apcu_exists->expects($this->once())
             ->with('key1')
             ->willReturn(false);
-        $ret = $this->pool->has('key1');
-        $this->assertFalse($ret);
-    }
-
-    public function testHasNot2(): void
-    {
-        $this->memcached->expects($this->once())
-            ->method('get')
-            ->with('key1')
-            ->willReturn('foo');
-        $this->memcached->method('getResultCode')->willReturn(MemcachedExt::RES_NOTFOUND);
-
         $ret = $this->pool->has('key1');
         $this->assertFalse($ret);
     }
@@ -254,8 +229,7 @@ class MemcachedTest extends TestCase
             'key1' => new Item('key1', 'val1'),
             'key2' => new Item('key2', 'val2')
         ];
-        $this->memcached->expects($this->once())
-            ->method('getMulti')
+        $this->apcu_fetch->expects($this->once())
             ->with(array_keys($expected))
             ->willReturn(['key1' => 'val1', 'key2' => 'val2']);
         $ret = $this->pool->getItems(array_keys($expected));
@@ -268,8 +242,7 @@ class MemcachedTest extends TestCase
             'key1' => new Item('key1', 'val1'),
             'key2' => (new Item('key2'))->setIsHit(false)
         ];
-        $this->memcached->expects($this->once())
-            ->method('getMulti')
+        $this->apcu_fetch->expects($this->once())
             ->with(array_keys($expected))
             ->willReturn(['key1' => 'val1']);
         $ret = $this->pool->getItems(array_keys($expected));
@@ -282,8 +255,7 @@ class MemcachedTest extends TestCase
             'key1' => new Item('key1'),
             'key2' => new Item('key2')
         ];
-        $this->memcached->expects($this->once())
-            ->method('getMulti')
+        $this->apcu_fetch->expects($this->once())
             ->willReturn(false);
         $ret = $this->pool->getItems(array_keys($expected));
         $this->assertEquals($expected, $ret);
@@ -291,19 +263,19 @@ class MemcachedTest extends TestCase
 
     public function testHasItem(): void
     {
-        $this->memcached->expects($this->once())->method('get')->with('key1')->willReturn('val1');
+        $this->apcu_exists->expects($this->once())->with('key1')->willReturn('val1');
         $this->assertTrue($this->pool->hasItem('key1'));
     }
 
     public function testDeleteItem(): void
     {
-        $this->memcached->expects($this->once())->method('delete')->with('key1')->willReturn(true);
+        $this->apcu_delete->expects($this->once())->with('key1')->willReturn(true);
         $this->assertTrue($this->pool->deleteItem('key1'));
     }
 
     public function testDeleteItems(): void
     {
-        $this->memcached->expects($this->once())->method('deleteMulti')->with(['key1', 'key2'])->willReturn(true);
+        $this->apcu_delete->expects($this->once())->with(['key1', 'key2'])->willReturn([]);
         $ret = $this->pool->deleteItems(['key1', 'key2']);
         $this->assertTrue($ret);
     }
@@ -311,7 +283,7 @@ class MemcachedTest extends TestCase
     public function testSave(): void
     {
         $item = new Item('key1', 'val1', 876);
-        $this->memcached->expects($this->once())->method('set')->with('key1', 'val1', 876)->willReturn(true);
+        $this->apcu_store->expects($this->once())->with('key1', 'val1', 876)->willReturn(true);
         $ret = $this->pool->save($item);
         $this->assertTrue($ret);
     }
@@ -319,7 +291,7 @@ class MemcachedTest extends TestCase
     public function testSaveDeferred(): void
     {
         $item = new Item('key1', 'val1', 876);
-        $this->memcached->expects($this->once())->method('set')->with('key1', 'val1', 876)->willReturn(true);
+        $this->apcu_store->expects($this->once())->with('key1', 'val1', 876)->willReturn(true);
         $ret = $this->pool->saveDeferred($item);
         $this->assertTrue($ret);
     }
