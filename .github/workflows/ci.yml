@@ -16,7 +16,16 @@ jobs:
           php_version: 8.0
           path: src/
 
+      - name: PHPStan 2
+        uses: php-actions/composer@v6
+        with:
+          command: analyse
+          php_version: 8.0
+          php_extensions: apcu memcached
+
       - name: PHPUnit tests
         uses: php-actions/composer@v6
         with:
           command: test-unit
+          php_version: 8.0
+          php_extensions: apcu memcached
