@@ -9,23 +9,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: php-actions/composer@v6
+        with:
+          php_version: 8.0
 
       - name: coding style
         uses: php-actions/composer@v6
         with:
-          command: cs-check
           php_version: 8.0
+          command: cs-check
 
       - name: static code analysis
         uses: php-actions/composer@v6
         with:
-          command: analyse
           php_version: 8.0
           php_extensions: apcu memcached
+          command: analyse
 
       - name: unit tests
         uses: php-actions/composer@v6
         with:
-          command: test-unit
           php_version: 8.0
           php_extensions: apcu memcached
+          command: test-unit
