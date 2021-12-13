@@ -183,6 +183,16 @@ class MemcachedTest extends TestCase
         $this->assertTrue($ret);
     }
 
+    public function testDeleteMultipleWithError(): void
+    {
+        $this->memcached->expects($this->once())
+            ->method('deleteMulti')
+            ->with(['key1', 'key2'])
+            ->willReturn(['key1' => true, 'key2' => false]);
+        $ret = $this->pool->deleteMultiple(['key1', 'key2']);
+        $this->assertFalse($ret);
+    }
+
     public function testHas(): void
     {
         $this->memcached->expects($this->once())
@@ -277,7 +287,7 @@ class MemcachedTest extends TestCase
 
     public function testDeleteItems(): void
     {
-        $this->memcached->expects($this->once())->method('deleteMulti')->with(['key1', 'key2'])->willReturn(true);
+        $this->memcached->expects($this->once())->method('deleteMulti')->with(['key1', 'key2'])->willReturn(['key1' => true, 'key2' => true]);
         $ret = $this->pool->deleteItems(['key1', 'key2']);
         $this->assertTrue($ret);
     }
