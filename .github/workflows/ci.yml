@@ -12,11 +12,12 @@ jobs:
         with:
           php_version: 8.0
 
-      - name: coding style
-        uses: php-actions/composer@v6
-        with:
-          php_version: 8.0
-          command: cs-check
+# php version is ignored, php-cs does not run on 8.1
+#      - name: coding style
+#        uses: php-actions/composer@v6
+#        with:
+#          php_version: 8.0
+#          command: cs-check
 
       - name: static code analysis
         uses: php-actions/composer@v6
