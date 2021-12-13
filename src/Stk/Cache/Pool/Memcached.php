@@ -105,8 +105,13 @@ class Memcached implements PoolInterface
         $aKeys = [...$keys];
 
         $keysRemoved = $this->_cache->deleteMulti($aKeys);
+        foreach ($keysRemoved as $key => $res) {
+            if ($res === false) {
+                return false;
+            }
+        }
 
-        return count($keysRemoved) === count($aKeys);
+        return true;
     }
 
     /**

@@ -138,8 +138,10 @@ class MemcachedTest extends TestCase
             'key2' => 'val2'
         ];
         $iterable = new ArrayIterator(array_keys($expected));
-        $this->memcached->method('get')->withConsecutive(['key1'], ['key2'])
-            ->willReturnOnConsecutiveCalls('val1', 'val2');
+        $this->memcached->expects($this->once())
+            ->method('getMulti')
+            ->with(array_keys($expected))
+            ->willReturn($expected);
         $ret = $this->pool->getMultiple($iterable);
         $this->assertEquals($expected, $ret);
     }
@@ -162,23 +164,13 @@ class MemcachedTest extends TestCase
             'key2' => 'val2'
         ];
         $iterable = new ArrayIterator($expected);
-        $this->memcached->method('set')->withConsecutive(['key1', 'val1', 499], ['key2', 'val2', 499])
-            ->willReturnOnConsecutiveCalls(true, true);
-        $ret = $this->pool->setMultiple($iterable, 499);
-        $this->assertTrue($ret);
-    }
+        $this->memcached->expects($this->once())
+            ->method('setMulti')
+            ->with(['key1' => 'val1', 'key2' => 'val2'], 300)
+            ->willReturn(true);
 
-    public function testSetMultipleWithIterableError(): void
-    {
-        $expected = [
-            'key1' => 'val1',
-            'key2' => 'val2'
-        ];
-        $iterable = new ArrayIterator($expected);
-        $this->memcached->method('set')->withConsecutive(['key1', 'val1', 499])
-            ->willReturnOnConsecutiveCalls(false);
-        $ret = $this->pool->setMultiple($iterable, 499);
-        $this->assertFalse($ret);
+        $ret = $this->pool->setMultiple($iterable);
+        $this->assertTrue($ret);
     }
 
     public function testDeleteMultiple(): void
@@ -186,27 +178,9 @@ class MemcachedTest extends TestCase
         $this->memcached->expects($this->once())
             ->method('deleteMulti')
             ->with(['key1', 'key2'])
-            ->willReturn(true);
+            ->willReturn(['key1' => true, 'key2' => true]);
         $ret = $this->pool->deleteMultiple(['key1', 'key2']);
         $this->assertTrue($ret);
-    }
-
-    public function testDeleteMultipleWithIterable(): void
-    {
-        $iterable = new ArrayIterator(['key1', 'key2']);
-        $this->memcached->method('delete')->withConsecutive(['key1'], ['key2'])
-            ->willReturnOnConsecutiveCalls(true, true);
-        $ret = $this->pool->deleteMultiple($iterable);
-        $this->assertTrue($ret);
-    }
-
-    public function testDeleteMultipleWithIterableError(): void
-    {
-        $iterable = new ArrayIterator(['key1', 'key2']);
-        $this->memcached->method('delete')->withConsecutive(['key1'])
-            ->willReturnOnConsecutiveCalls(false);
-        $ret = $this->pool->deleteMultiple($iterable);
-        $this->assertFalse($ret);
     }
 
     public function testHas(): void
