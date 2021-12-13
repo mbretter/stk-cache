@@ -15,12 +15,14 @@ jobs:
       - name: PHPStan Static Analysis
         uses: php-actions/phpstan@v3
         with:
-          php-version: '8.0'
+          php_version: '8.0'
           path: src/
 
       - name: PHPUnit tests
         uses: php-actions/phpunit@v3
         with:
-          php-version: '8.0'
+          php_version: '8.0'
           php_extensions: 'memcached apcu'
+          configuration: 'phpunit.xml'
+          bootstrap: 'test/unit/bootstrap.php'
           memory_limit: 256M
