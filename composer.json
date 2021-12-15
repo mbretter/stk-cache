@@ -28,7 +28,8 @@
   "scripts": {
     "analyse": "phpstan analyse",
     "test-unit": "phpunit -v --testsuite=\"unit tests\" --testdox --bootstrap test/unit/bootstrap.php",
-    "test-reports": "phpunit --testsuite=\"unit tests\" --bootstrap test/unit/bootstrap.php --coverage-html reports/coverage --coverage-clover reports/clover.xml --coverage-crap4j reports/crap4j.xml --log-junit reports/junit.xml",
+    "test-reports": "export XDEBUG_MODE=coverage;phpunit --testsuite=\"unit tests\" --bootstrap test/unit/bootstrap.php --coverage-html reports/coverage --coverage-clover reports/clover.xml --coverage-crap4j reports/crap4j.xml --log-junit reports/junit.xml",
+    "coverage": "export XDEBUG_MODE=coverage;phpunit --testsuite=\"unit tests\" --bootstrap test/unit/bootstrap.php --coverage-clover clover.xml",
     "cs-check": "php-cs-fixer fix -v --dry-run --using-cache=no src",
     "cs-fix": "php-cs-fixer fix -v --using-cache=no src"
   },
