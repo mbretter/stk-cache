@@ -18,7 +18,7 @@ $pool = new Cache\Pool\Memcached($memcached);
 $cache = new Cache\Cache($pool);
 ```
 
-## APCU
+## APCu
 
 ```php
 $pool = new Cache\Pool\APCu();

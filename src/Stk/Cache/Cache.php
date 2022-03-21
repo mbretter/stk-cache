@@ -18,6 +18,11 @@ class Cache implements PoolInterface, Injectable
         $this->pool = $pool;
     }
 
+    public function getPool(): PoolInterface
+    {
+        return $this->pool;
+    }
+
     // extensions
 
     /**
