@@ -94,7 +94,12 @@ class Memcached implements PoolInterface
             $ttl = (new DateTime())->add($ttl)->getTimestamp() - (new DateTime())->getTimestamp();
         }
 
-        return $this->_cache->setMulti([...$values], (int) $ttl);
+        $params = [];
+        foreach ($values as $k => $v) {
+            $params[$k] = $v;
+        }
+
+        return $this->_cache->setMulti($params, (int) $ttl);
     }
 
     /**

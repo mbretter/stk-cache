@@ -8,7 +8,7 @@
     "php": "^8.0",
     "psr/simple-cache": "^3.0.0",
     "psr/cache": "^3.0.0",
-    "mbretter/stk-di": "^2.0.1"
+    "mbretter/stk-di": ">=2.0.1"
   },
   "suggest": {
     "ext-memcached": "*",

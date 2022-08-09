@@ -183,6 +183,16 @@ class MemcachedTest extends TestCase
         $this->assertTrue($ret);
     }
 
+    public function testDeleteMultipleWithIterable(): void
+    {
+        $this->memcached->expects($this->once())
+            ->method('deleteMulti')
+            ->with(['key1', 'key2'])
+            ->willReturn(['key1' => true, 'key2' => true]);
+        $ret = $this->pool->deleteMultiple(new ArrayIterator(['key1', 'key2']));
+        $this->assertTrue($ret);
+    }
+
     public function testDeleteMultipleWithError(): void
     {
         $this->memcached->expects($this->once())
